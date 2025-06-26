@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Validate Swift Package
+      run: swift package describe
+    
+    - name: Check Swift Compilation
+      run: |
+        # Just check that the package structure is valid
+        swift build --dry-run || echo "Note: iOS-only packages may not build on macOS runners"

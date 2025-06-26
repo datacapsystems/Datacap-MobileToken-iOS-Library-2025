@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: ${{ github.ref }}
+        draft: false
+        prerelease: false
+        body: |
+          ## What's New
+          See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          
+          ## Installation
+          
+          ### Swift Package Manager
+          ```swift
+          dependencies: [
+              .package(url: "https://github.com/${{ github.repository }}.git", from: "${{ github.ref_name }}")
+          ]
+          ```
+          
+          ### CocoaPods
+          ```ruby
+          pod 'DatacapTokenLibrary', '~> ${{ github.ref_name }}'
+          ```
