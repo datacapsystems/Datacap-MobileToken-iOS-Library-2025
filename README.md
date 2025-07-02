@@ -439,45 +439,319 @@ Demo mode generates tokens with the format `tok_demo_XXXXXXXXXXXXXXXX` without m
 
 ## Migration Guide
 
-### From Legacy Framework
+### Migrating from DatacapMobileToken.xcframework
 
-If migrating from the legacy DatacapMobileToken.xcframework:
+This guide provides step-by-step instructions for migrating from the legacy DatacapMobileToken.xcframework to the new DatacapTokenLibrary. The new library offers improved performance, modern Swift APIs, and enhanced security features while maintaining backward compatibility with your existing Datacap integration.
+
+#### Migration Overview
 
 ```mermaid
 graph LR
-    A[Legacy Framework] -->|Step 1| B[Remove Framework]
-    B -->|Step 2| C[Add Library]
-    C -->|Step 3| D[Update Imports]
-    D -->|Step 4| E[Refactor Code]
-    E -->|Step 5| F[Test Integration]
+    A[Legacy Framework] -->|Step 1| B[Assess Current Integration]
+    B -->|Step 2| C[Remove Legacy Framework]
+    C -->|Step 3| D[Install New Library]
+    D -->|Step 4| E[Update Code]
+    E -->|Step 5| F[Test & Verify]
+    F -->|Step 6| G[Deploy]
 ```
 
-1. **Remove Legacy Framework**
-   - Delete DatacapMobileToken.xcframework from project
-   - Remove framework from build phases
+#### Pre-Migration Checklist
 
-2. **Install New Library**
-   - Follow installation instructions above
+Before beginning migration, ensure you have:
+- [ ] Current API keys for both certification and production environments
+- [ ] Access to your existing implementation code
+- [ ] A test environment for validation
+- [ ] Backup of your current working implementation
+- [ ] Understanding of your current error handling and UI customization
 
-3. **Update Import Statements**
-   ```swift
-   // Old
-   import DatacapMobileToken
-   
-   // New
-   import DatacapTokenLibrary
+#### Step 1: Assess Current Integration
+
+Review your existing implementation to identify:
+- Custom UI modifications
+- Error handling logic
+- API key management approach
+- Environment switching mechanism
+- Any framework-specific dependencies
+
+#### Step 2: Remove Legacy Framework
+
+1. **Remove from Xcode Project**
+   ```
+   1. Select DatacapMobileToken.xcframework in Project Navigator
+   2. Press Delete key and choose "Move to Trash"
+   3. Clean build folder (Cmd+Shift+K)
    ```
 
-4. **Update API Usage**
-   ```swift
-   // Old
-   let tokenizer = DatacapTokenizer()
-   tokenizer.delegate = self
-   
-   // New
-   let tokenService = DatacapTokenService(publicKey: "YOUR_KEY")
-   tokenService.delegate = self
+2. **Remove from Build Phases**
    ```
+   1. Select your target in project settings
+   2. Go to "Build Phases" → "Link Binary With Libraries"
+   3. Remove DatacapMobileToken.xcframework if present
+   4. Go to "Build Phases" → "Embed Frameworks"
+   5. Remove DatacapMobileToken.xcframework if present
+   ```
+
+3. **Clean up Framework Search Paths**
+   ```
+   1. Go to Build Settings
+   2. Search for "Framework Search Paths"
+   3. Remove any paths referencing the old framework
+   ```
+
+#### Step 3: Install New Library
+
+Follow the [Installation](#installation) instructions above using Swift Package Manager or manual installation.
+
+#### Step 4: Update Your Code
+
+##### Import Statements
+
+```swift
+// Legacy
+import DatacapMobileToken
+
+// New
+import DatacapTokenLibrary
+```
+
+##### API Mapping Reference
+
+| Legacy API | New API | Notes |
+|------------|---------|-------|
+| `DatacapTokenizer()` | `DatacapTokenService(publicKey:isCertification:)` | Now requires API key at initialization |
+| `tokenizer.publicKey = "KEY"` | Set in initializer | API key is now immutable |
+| `tokenizer.environment = .production` | `isCertification: false` | Simplified environment selection |
+| `tokenizer.tokenize(cardData)` | `generateTokenDirect(for:)` | Now uses async/await |
+| `tokenizerDidSucceed(_:token:)` | `tokenRequestDidSucceed(_:)` | Returns full token object |
+| `tokenizerDidFail(_:error:)` | `tokenRequestDidFail(error:)` | Enhanced error types |
+
+##### Code Migration Examples
+
+**Basic Integration - Legacy:**
+```swift
+class PaymentViewController: UIViewController, DatacapTokenizerDelegate {
+    let tokenizer = DatacapTokenizer()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        tokenizer.delegate = self
+        tokenizer.publicKey = "YOUR_KEY"
+        tokenizer.environment = .certification
+    }
+    
+    func processPayment() {
+        tokenizer.presentCardEntry(from: self)
+    }
+    
+    // Delegate methods
+    func tokenizerDidSucceed(_ tokenizer: DatacapTokenizer, token: String) {
+        // Process token
+    }
+    
+    func tokenizerDidFail(_ tokenizer: DatacapTokenizer, error: Error) {
+        // Handle error
+    }
+    
+    func tokenizerDidCancel(_ tokenizer: DatacapTokenizer) {
+        // Handle cancellation
+    }
+}
+```
+
+**Basic Integration - New:**
+```swift
+class PaymentViewController: UIViewController, DatacapTokenServiceDelegate {
+    let tokenService = DatacapTokenService(
+        publicKey: "YOUR_KEY",
+        isCertification: true
+    )
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        tokenService.delegate = self
+    }
+    
+    func processPayment() {
+        tokenService.requestToken(from: self)
+    }
+    
+    // Delegate methods
+    func tokenRequestDidSucceed(_ token: DatacapToken) {
+        // Process token - note: now receives full token object
+        let tokenString = token.token
+        let maskedCard = token.maskedCardNumber
+    }
+    
+    func tokenRequestDidFail(error: DatacapTokenError) {
+        // Handle error - note: specific error type
+        switch error {
+        case .invalidCardNumber:
+            // Handle card validation error
+        case .networkError(let message):
+            // Handle network error
+        default:
+            // Handle other errors
+        }
+    }
+    
+    func tokenRequestDidCancel() {
+        // Handle cancellation
+    }
+}
+```
+
+**Custom UI Integration - Legacy:**
+```swift
+func customTokenization() {
+    let cardData = [
+        "cardNumber": "4111111111111111",
+        "expirationMonth": "12",
+        "expirationYear": "25",
+        "cvv": "123"
+    ]
+    
+    tokenizer.tokenizeCard(cardData) { success, token, error in
+        if success {
+            // Use token
+        } else {
+            // Handle error
+        }
+    }
+}
+```
+
+**Custom UI Integration - New:**
+```swift
+func customTokenization() async {
+    let cardData = CardData(
+        cardNumber: "4111111111111111",
+        expirationMonth: "12",
+        expirationYear: "25",
+        cvv: "123"
+    )
+    
+    do {
+        let token = try await tokenService.generateTokenDirect(for: cardData)
+        // Use token.token
+    } catch let error as DatacapTokenError {
+        // Handle specific error
+    } catch {
+        // Handle unexpected error
+    }
+}
+```
+
+#### Step 5: Test and Verify
+
+##### Testing Checklist
+
+1. **Certification Environment Testing**
+   - [ ] Verify successful tokenization with test card (4111111111111111)
+   - [ ] Confirm error handling for invalid cards
+   - [ ] Test user cancellation flow
+   - [ ] Validate UI appearance and behavior
+   - [ ] Check masked card number format
+
+2. **Production Environment Testing**
+   - [ ] Switch to production environment
+   - [ ] Test with live API keys (use test cards only)
+   - [ ] Verify environment switching works correctly
+   - [ ] Confirm error messages are appropriate
+
+3. **Integration Testing**
+   - [ ] Test payment flow end-to-end
+   - [ ] Verify token format compatibility with backend
+   - [ ] Check error handling and recovery
+   - [ ] Test on all supported iOS versions
+   - [ ] Validate on both iPhone and iPad
+
+4. **Performance Testing**
+   - [ ] Compare tokenization speed
+   - [ ] Check memory usage
+   - [ ] Verify no memory leaks
+
+##### Verification Code Example
+
+```swift
+func verifyMigration() async {
+    // Test both environments
+    let environments: [(String, Bool)] = [
+        ("Certification", true),
+        ("Production", false)
+    ]
+    
+    for (name, isCert) in environments {
+        print("Testing \(name) environment...")
+        
+        let service = DatacapTokenService(
+            publicKey: isCert ? "CERT_KEY" : "PROD_KEY",
+            isCertification: isCert
+        )
+        
+        let testCard = CardData(
+            cardNumber: "4111111111111111",
+            expirationMonth: "12",
+            expirationYear: "30",
+            cvv: "123"
+        )
+        
+        do {
+            let token = try await service.generateTokenDirect(for: testCard)
+            print("✓ \(name): Token generated - \(token.token)")
+            print("  Masked: \(token.maskedCardNumber)")
+            print("  Type: \(token.cardType)")
+        } catch {
+            print("✗ \(name): Failed - \(error)")
+        }
+    }
+}
+```
+
+#### Step 6: Deploy
+
+1. **Gradual Rollout Recommended**
+   - Deploy to internal testing first
+   - Monitor for any issues
+   - Roll out to beta users
+   - Full production deployment
+
+2. **Monitor After Deployment**
+   - Track tokenization success rates
+   - Monitor error rates
+   - Compare performance metrics
+   - Gather user feedback
+
+### Migration Troubleshooting
+
+#### Common Migration Issues
+
+**Issue**: "Unresolved identifier 'DatacapTokenizer'"
+- **Cause**: Old import statement still present
+- **Solution**: Ensure all imports are updated to `import DatacapTokenLibrary`
+
+**Issue**: Delegate methods not being called
+- **Cause**: Protocol name or method signatures changed
+- **Solution**: Update to `DatacapTokenServiceDelegate` and new method signatures
+
+**Issue**: Async/await compilation errors
+- **Cause**: Using completion handlers with new async API
+- **Solution**: Update to async/await pattern or use delegate methods
+
+**Issue**: Different token format
+- **Cause**: The new library returns a `DatacapToken` object, not just a string
+- **Solution**: Access the token string via `token.token` property
+
+#### Getting Help
+
+If you encounter issues during migration:
+
+1. Review the [example app](https://github.com/datacapsystems/Datacap-MobileToken-iOS-2025) for reference implementation
+2. Check the [API Reference](#api-reference) section for detailed documentation
+3. Contact support@datacapsystems.com with:
+   - Your migration stage
+   - Specific error messages
+   - Code samples (sanitized)
+   - Library versions (old and new)
 
 ## Support
 
