@@ -1,7 +1,7 @@
 # Datacap Mobile Token iOS Library
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/datacapsystems/Datacap-MobileToken-iOS-2025/main/DatacapMobileTokenDemo/DatacapMobileDemo/logo.png" alt="Datacap Logo" width="300"/>
+  <img src="logo.png" alt="Datacap Logo" width="300"/>
 </div>
 
 ![Swift](https://img.shields.io/badge/Swift-5.0+-orange.svg)
