@@ -81,7 +81,9 @@ class DatacapTokenViewController: UIViewController {
         
         // Setup date picker
         expirationDatePicker.datePickerMode = .date
-        expirationDatePicker.preferredDatePickerStyle = .wheels
+        if #available(iOS 13.4, *) {
+            expirationDatePicker.preferredDatePickerStyle = .wheels
+        }
         expirationDatePicker.minimumDate = Date()
         expirationDatePicker.addTarget(self, action: #selector(datePickerChanged), for: .valueChanged)
         
