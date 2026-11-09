@@ -61,7 +61,7 @@ swift test --filter DatacapTokenLibraryTests.testCardValidation
 
 ### Using the Test Script
 ```bash
-# 1. Edit test-api.swift with your API keys
+# 1. Export your keys: export CERT_API_KEY=<cert key> PROD_API_KEY=<prod key>
 # 2. Run the test
 ./test-api.swift
 

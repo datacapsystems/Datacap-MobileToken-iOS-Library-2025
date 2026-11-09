@@ -6,16 +6,16 @@ import Foundation
 // This script tests your Datacap API keys to ensure they're working correctly.
 //
 // USAGE:
-// 1. Replace YOUR_CERT_KEY and YOUR_PROD_KEY below with your actual API keys
+// 1. Export your keys as environment variables (never put them in this file):
+//      export CERT_API_KEY=<your certification token key>
+//      export PROD_API_KEY=<your production token key>
 // 2. Run: ./test-api.swift
 // 3. The script will test both environments and show the results
-//
-// IMPORTANT: Never commit this file with real API keys!
 
 // ========== CONFIGURATION ==========
-// Replace these with your actual API keys
-let CERT_API_KEY = "REDACTED_TOKEN_KEY"  // Your certification API key
-let PROD_API_KEY = "REDACTED_TOKEN_KEY"  // Your production API key
+// Keys are read from the environment so they are never committed.
+let CERT_API_KEY = ProcessInfo.processInfo.environment["CERT_API_KEY"] ?? ""
+let PROD_API_KEY = ProcessInfo.processInfo.environment["PROD_API_KEY"] ?? ""
 
 // Test card data (this is a valid test card number)
 let TEST_CARD_NUMBER = "4111111111111111"
@@ -78,9 +78,10 @@ class DatacapAPITest {
 }
 
 // Check if API keys are configured
-if CERT_API_KEY == "YOUR_CERT_KEY" || PROD_API_KEY == "YOUR_PROD_KEY" {
+if CERT_API_KEY.isEmpty || PROD_API_KEY.isEmpty {
     print("❌ ERROR: Please configure your API keys!")
-    print("Edit this file and replace YOUR_CERT_KEY and YOUR_PROD_KEY with your actual keys.")
+    print("Set the CERT_API_KEY and PROD_API_KEY environment variables, e.g.:")
+    print("  CERT_API_KEY=<cert key> PROD_API_KEY=<prod key> ./test-api.swift")
     print("\nTo get your API keys:")
     print("1. Log in to your Datacap merchant portal")
     print("2. Navigate to Settings > API Keys")

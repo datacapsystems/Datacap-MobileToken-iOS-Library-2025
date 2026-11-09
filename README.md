@@ -384,7 +384,7 @@ private lazy var tokenService: DatacapTokenService = {
 We provide a command-line tool to verify your API keys are working correctly:
 
 ```bash
-# 1. Edit test-api.swift and add your API keys
+# 1. Export your keys: export CERT_API_KEY=<cert key> PROD_API_KEY=<prod key>
 # 2. Run the test
 ./test-api.swift
 
@@ -398,7 +398,7 @@ The test tool will:
 - Show detailed response information
 - Help diagnose any configuration issues
 
-**Important:** Never commit the test-api.swift file with real API keys!
+**Important:** The script reads keys from environment variables. Never hard-code real keys in any committed file.
 
 ### Unit Testing
 

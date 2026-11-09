@@ -88,6 +88,5 @@ iOSInjectionProject/
 # Development context
 CLAUDE.md
 
-# API Keys - NEVER commit these!
-# If you've added real API keys to test-api.swift, uncomment the line below:
-# test-api.swift
+# Claude Code local settings (can contain approved commands verbatim)
+.claude/settings.local.json
